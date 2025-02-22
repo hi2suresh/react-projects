@@ -1,35 +1,58 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+
+import TodoInput from './components/ToDo/TodoInput';
+import TodoList from './components/ToDo/TodoList';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [todos, setTodos] = useState([]);
 
+  const [todoValue, setTodoValue] = useState('');
+
+  const persistData = (newList) => {
+    localStorage.setItem('todos', JSON.stringify({ todos: newList }));
+  };
+  const handleAdd = (newTodo) => {
+    console.log(newTodo);
+    const newTodoList = [...todos, newTodo];
+    setTodos(newTodoList);
+    persistData(newTodoList);
+  };
+
+  const handleEdit = (id) => {
+    const editableTodo = todos.find((todo) => todo.id === id);
+    setTodoValue(editableTodo.item);
+    handleDelete(id);
+    persistData(todos);
+  };
+  const handleDelete = (id) => {
+    const updatedTodos = todos.filter((todo) => todo.id !== id);
+    setTodos(updatedTodos);
+    persistData(updatedTodos);
+  };
+
+  useEffect(() => {
+    if (!localStorage) return;
+    let localTodos = localStorage.getItem('todos');
+    if (!localTodos) return;
+    localTodos = JSON.parse(localTodos).todos;
+    setTodos(localTodos);
+  }, []);
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <>
+        <TodoInput
+          handleAdd={handleAdd}
+          todoValue={todoValue}
+          setTodoValue={setTodoValue}
+        />
+        <TodoList
+          todos={todos}
+          handleEdit={handleEdit}
+          handleDelete={handleDelete}
+        />
+      </>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
